@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bang Bang — Real World Asset Protocol</title>
+    <meta name="description"
+        content="Decentralized RWA portfolio management built on Stellar Soroban. Register, view, and remove physical assets on-chain." />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <style>
+        /* ── CSS Reset & Tokens ─────────────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-deep: #050A10;
+            --bg-surface: #0B1220;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(99, 235, 177, 0.35);
+
+            --accent-green: #63EBB1;
+            --accent-teal: #3DD6F5;
+            --accent-red: #FF5E7E;
+
+            --text-primary: #E8F0FE;
+            --text-secondary: #7A8FA6;
+            --text-muted: #4A5A70;
+
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+
+            --shadow-glow: 0 0 40px rgba(99, 235, 177, 0.10);
+            --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(63, 210, 155, 0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 90% 80%, rgba(61, 214, 245, 0.06) 0%, transparent 60%);
+        }
+
+        /* ── Layout ─────────────────────────────────────────────────────────── */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ── Header ─────────────────────────────────────────────────────────── */
+        header {
+            padding: 40px 0 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-hover), transparent);
+            margin-top: 28px;
+            opacity: 0.5;
+        }
+
+        .logo-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 12px;
+            color: var(--accent-green);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-pill .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.4)
+            }
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-teal) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        /* ── Glass Card ─────────────────────────────────────────────────────── */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 28px 30px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .glass-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* ── Section Labels ─────────────────────────────────────────────────── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent-green);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Contract ID Banner ─────────────────────────────────────────────── */
+        .contract-banner {
+            margin: 24px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(99, 235, 177, 0.06);
+            border: 1px solid rgba(99, 235, 177, 0.18);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+        }
+
+        .contract-banner label {
+            font-size: 11px;
+            color: var(--accent-green);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        #contract-id-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: 'Inter', monospace;
+        }
+
+        #contract-id-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ── Form ───────────────────────────────────────────────────────────── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.04em;
+        }
+
+        input,
+        select,
+        textarea {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 11px 14px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            width: 100%;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(99, 235, 177, 0.10);
+        }
+
+        select option {
+            background: var(--bg-surface);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ── Buttons ────────────────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition);
+            letter-spacing: 0.03em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            color: #050A10;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(99, 235, 177, 0.25);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--border-hover);
+            color: var(--accent-green);
+        }
+
+        .btn-delete {
+            background: rgba(255, 94, 126, 0.10);
+            border: 1px solid rgba(255, 94, 126, 0.20);
+            color: var(--accent-red);
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+
+        .btn-delete:hover {
+            background: rgba(255, 94, 126, 0.20);
+            border-color: var(--accent-red);
+            transform: none;
+        }
+
+        /* ── Alert / Toast ──────────────────────────────────────────────────── */
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius-md);
+            padding: 12px 20px;
+            font-size: 13px;
+            color: var(--accent-green);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            backdrop-filter: blur(20px);
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #toast.error {
+            border-color: rgba(255, 94, 126, 0.4);
+            color: var(--accent-red);
+        }
+
+        /* ── Asset Table ────────────────────────────────────────────────────── */
+        .asset-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .asset-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 3px 12px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead th {
+            padding: 10px 14px;
+            text-align: left;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            transition: background var(--transition);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody td {
+            padding: 12px 14px;
+            vertical-align: middle;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .type-Gold {
+            background: rgba(255, 200, 80, 0.12);
+            color: #FFCA50;
+            border: 1px solid rgba(255, 200, 80, 0.25);
+        }
+
+        .type-Land {
+            background: rgba(99, 235, 177, 0.10);
+            color: var(--accent-green);
+            border: 1px solid rgba(99, 235, 177, 0.20);
+        }
+
+        .type-Property {
+            background: rgba(61, 214, 245, 0.10);
+            color: var(--accent-teal);
+            border: 1px solid rgba(61, 214, 245, 0.20);
+        }
+
+        .type-Vehicle {
+            background: rgba(170, 110, 255, 0.10);
+            color: #AA6EFF;
+            border: 1px solid rgba(170, 110, 255, 0.20);
+        }
+
+        .type-Other {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .value-cell {
+            font-variant-numeric: tabular-nums;
+            color: var(--accent-green);
+            font-weight: 500;
+        }
+
+        /* ── Empty State ────────────────────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 48px 0;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            opacity: 0.3;
+            margin-bottom: 14px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ── Loading ────────────────────────────────────────────────────────── */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(99, 235, 177, 0.3);
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Footer ─────────────────────────────────────────────────────────── */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* ── Spacing ─────────────────────────────────────────────────────────*/
+        .mt-6 {
+            margin-top: 6px;
+        }
+
+        .mt-12 {
+            margin-top: 12px;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        .mt-24 {
+            margin-top: 24px;
+        }
+
+        .mt-32 {
+            margin-top: 32px;
+        }
+
+        .gap-10 {
+            gap: 10px;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- ── Header ─────────────────────────────────────────────────────────── -->
+        <header>
+            <div class="logo-pill">
+                <span class="dot"></span>
+                Stellar Testnet · Soroban v21
+            </div>
+            <h1>Bang Bang Protocol</h1>
+            <p class="subtitle">Decentralized Real-World Asset (RWA) Portfolio Management</p>
+        </header>
+
+        <!-- ── Contract ID ────────────────────────────────────────────────────── -->
+        <div class="contract-banner">
+            <label for="contract-id-input">Contract ID</label>
+            <input id="contract-id-input" type="text" placeholder="Paste your deployed contract ID here…"
+                spellcheck="false" />
+            <button class="btn btn-ghost" id="btn-refresh" title="Refresh asset list">
+                ↻ Refresh
+            </button>
+        </div>
+
+        <!-- ── Register Asset Form ────────────────────────────────────────────── -->
+        <div class="glass-card mt-24" id="form-section">
+            <div class="section-label">Register New Asset</div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="asset-type">Asset Type</label>
+                    <select id="asset-type">
+                        <option value="Gold">🥇 Gold</option>
+                        <option value="Land">🌾 Land</option>
+                        <option value="Property">🏠 Property</option>
+                        <option value="Vehicle">🚗 Vehicle</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="asset-value">Value (USD)</label>
+                    <input id="asset-value" type="number" min="0" placeholder="e.g. 60000" />
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="asset-description">Description</label>
+                    <textarea id="asset-description" placeholder="Describe the physical asset in detail…"></textarea>
+                </div>
+            </div>
+
+            <div class="mt-16">
+                <button class="btn btn-primary" id="btn-create">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    Register Asset
+                </button>
+            </div>
+
+            <!-- Status message -->
+            <div id="form-status" class="mt-12" style="font-size:13px;color:var(--text-secondary);min-height:18px;">
+            </div>
+        </div>
+
+        <!-- ── Asset List ──────────────────────────────────────────────────────── -->
+        <div class="glass-card mt-24" id="list-section">
+            <div class="asset-header">
+                <div class="section-label" style="margin-bottom:0;">Asset Portfolio</div>
+                <span class="asset-count" id="asset-count">0 assets</span>
+            </div>
+
+            <div class="table-wrap" id="table-wrap">
+                <table id="asset-table">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Value (USD)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="asset-tbody">
+                        <!-- rows injected by JS -->
+                    </tbody>
+                </table>
+
+                <div class="empty-state" id="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <rect x="8" y="14" width="32" height="26" rx="3" stroke="white" stroke-width="2" />
+                        <path d="M16 14v-2a8 8 0 1 1 16 0v2" stroke="white" stroke-width="2" />
+                        <path d="M19 26h10M24 21v10" stroke="white" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <p>No assets registered yet.<br />Use the form above to add your first asset.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Bang Bang Protocol &copy; 2025 — Built on <strong style="color:var(--accent-green)">Stellar
+                    Soroban</strong></p>
+        </footer>
+    </div>
+
+    <!-- ── Toast ──────────────────────────────────────────────────────────────── -->
+    <div id="toast"></div>
+
+    <!-- ╔══════════════════════════════════════════════════════════════════════╗ -->
+    <!-- ║                     JavaScript Logic                               ║ -->
+    <!-- ╚══════════════════════════════════════════════════════════════════════╝ -->
+    <script>
+        /**
+         * Bang Bang Protocol — Frontend JS
+         *
+         * Integration notes:
+         *   This front-end is intentionally kept framework-free for portability.
+         *   Replace the MOCK_* functions with real Stellar SDK (stellar-sdk / freighter)
+         *   calls once you have a deployed contract ID.
+         *
+         *   Required SDK calls (Soroban):
+         *     • invokeContract("create_asset", [asset_type, description, value_in_usd])
+         *     • invokeContract("get_assets",   [])
+         *     • invokeContract("delete_asset", [id])
+         *
+         *   For a quick integration, see:
+         *   https://developers.stellar.org/docs/smart-contracts/getting-started/setup
+         */
+
+        // ── State ──────────────────────────────────────────────────────────────────
+        let assets = []; // local mirror of on-chain assets
+
+        // ── DOM refs ───────────────────────────────────────────────────────────────
+        const tbody = document.getElementById('asset-tbody');
+        const emptyState = document.getElementById('empty-state');
+        const countEl = document.getElementById('asset-count');
+        const formStatus = document.getElementById('form-status');
+        const contractEl = document.getElementById('contract-id-input');
+
+        // ── Toast notification ─────────────────────────────────────────────────────
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = isError ? 'error show' : 'show';
+            setTimeout(() => { t.className = isError ? 'error' : ''; }, 3000);
+        }
+
+        // ── Determine badge class by type ──────────────────────────────────────────
+        function typeBadge(type) {
+            const known = ['Gold', 'Land', 'Property', 'Vehicle'];
+            const cls = known.includes(type) ? `type-${type}` : 'type-Other';
+            return `<span class="type-badge ${cls}">${type}</span>`;
+        }
+
+        // ── Format USD ─────────────────────────────────────────────────────────────
+        function usd(value) {
+            return '$' + Number(value).toLocaleString('en-US');
+        }
+
+        // ── Render asset table ─────────────────────────────────────────────────────
+        function renderTable() {
+            tbody.innerHTML = '';
+            countEl.textContent = `${assets.length} asset${assets.length !== 1 ? 's' : ''}`;
+
+            if (assets.length === 0) {
+                emptyState.style.display = '';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            assets.forEach(asset => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+      <td style="color:var(--text-muted);font-size:12px;">#${asset.id}</td>
+      <td>${typeBadge(asset.asset_type)}</td>
+      <td style="max-width:280px;color:var(--text-secondary)">${escHtml(asset.description)}</td>
+      <td class="value-cell">${usd(asset.value_in_usd)}</td>
+      <td>
+        <button class="btn btn-delete" data-id="${asset.id}" id="del-btn-${asset.id}">
+          Delete
+        </button>
+      </td>
+    `;
+                tbody.appendChild(tr);
+            });
+
+            // Bind delete buttons
+            tbody.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => handleDelete(Number(btn.dataset.id)));
+            });
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ── MOCK: Get assets (replace with Soroban SDK call) ─────────────────────
+        async function invokeGetAssets() {
+            /*
+             * INTEGRATION POINT — replace mock with:
+             *
+             *   const result = await server.simulateTransaction(
+             *     buildInvokeContractTx(contractId, "get_assets", [])
+             *   );
+             *   return parseScValAssets(result.result.retval);
+             */
+            return [...assets]; // mock: return local copy
+        }
+
+        // ── MOCK: Create asset (replace with Soroban SDK call) ──────────────────
+        async function invokeCreateAsset(asset_type, description, value_in_usd) {
+            /*
+             * INTEGRATION POINT — replace mock with a signed transaction submission.
+             */
+            const newId = assets.length > 0 ? Math.max(...assets.map(a => a.id)) + 1 : 1;
+            assets.push({ id: newId, asset_type, description, value_in_usd });
+            return newId;
+        }
+
+        // ── MOCK: Delete asset (replace with Soroban SDK call) ──────────────────
+        async function invokeDeleteAsset(id) {
+            /*
+             * INTEGRATION POINT — replace mock with a signed transaction submission.
+             */
+            const before = assets.length;
+            assets = assets.filter(a => a.id !== id);
+            return assets.length < before;
+        }
+
+        // ── Handler: create ────────────────────────────────────────────────────────
+        document.getElementById('btn-create').addEventListener('click', async () => {
+            const asset_type = document.getElementById('asset-type').value.trim();
+            const description = document.getElementById('asset-description').value.trim();
+            const value_in_usd = parseInt(document.getElementById('asset-value').value, 10);
+
+            if (!description) { showToast('Please enter a description.', true); return; }
+            if (!value_in_usd || value_in_usd < 0) { showToast('Please enter a valid USD value.', true); return; }
+
+            const btn = document.getElementById('btn-create');
+            btn.disabled = true;
+            formStatus.innerHTML = '<span class="spinner"></span> Submitting transaction…';
+
+            try {
+                const newId = await invokeCreateAsset(asset_type, description, value_in_usd);
+                renderTable();
+                formStatus.textContent = '';
+                document.getElementById('asset-description').value = '';
+                document.getElementById('asset-value').value = '';
+                showToast(`✓ Asset #${newId} registered successfully.`);
+            } catch (err) {
+                formStatus.textContent = '';
+                showToast(`Error: ${err.message}`, true);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // ── Handler: delete ────────────────────────────────────────────────────────
+        async function handleDelete(id) {
+            if (!confirm(`Remove asset #${id} from the portfolio?`)) return;
+            const btn = document.getElementById(`del-btn-${id}`);
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+            try {
+                const ok = await invokeDeleteAsset(id);
+                if (ok) {
+                    renderTable();
+                    showToast(`Asset #${id} removed.`);
+                } else {
+                    showToast(`Asset #${id} not found.`, true);
+                }
+            } catch (err) {
+                showToast(`Error: ${err.message}`, true);
+            }
+        }
+
+        // ── Handler: refresh ───────────────────────────────────────────────────────
+        document.getElementById('btn-refresh').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-refresh');
+            btn.disabled = true;
+            btn.textContent = '↻ Loading…';
+            try {
+                assets = await invokeGetAssets();
+                renderTable();
+                showToast('Asset list refreshed.');
+            } catch (err) {
+                showToast(`Refresh failed: ${err.message}`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '↻ Refresh';
+            }
+        });
+
+        // ── Init ───────────────────────────────────────────────────────────────────
+        renderTable();
+    </script>
+</body>
+
+</html>
